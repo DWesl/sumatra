@@ -153,6 +153,22 @@ def find_versions_from_egg(dependencies):
                                 dependency.source = 'egg-info'
                                 break
     return dependencies
+  
+  
+def find_versions_from_pip(dependencies):
+    """Get version information from pip, if available."""
+    import subprocess
+    for dependency in dependencies:
+        if dependency.version == "unknown":
+            try:
+                pip_output = subprocess.check_output([sys.executable, "-m", "pip", "show", dependency.module_name])
+            except subprocess.CalledProcessError:
+                # Pip can't find it.
+                pass
+            else:
+                dependency.version = [line.split()[1] for line in pip_output.splitlines() if b"version" in line.lower()][0]
+                dependency.source = 'pip'
+    return dependencies
 
 
 # Other possible heuristics:
